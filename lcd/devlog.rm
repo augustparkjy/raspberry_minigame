@@ -1,0 +1,18 @@
+#1. 7 segment LED를 사용하려 했으나, 사전에 필요한 저항을 구매하지 못했다. 또한 breadboard의 가용 pin 개수가 많이 부족할 것이 예상되어
+출력을 LCD display로 대체하게 되었다.
+
+#2. 장치의 설치 주의 사항에 따라 저항은 10K옴 저항과 220옴 저항을 직렬 연결하여 구성했다.
+
+#3. LCD display의 8 bit mode는 한번에 8bits의 명령어와 character를 전송 할 수 있다. 4 bit mode는 한번에 4bits 명령어와 character를 전송하고
+전송 후에도 register 내에서 bit shift 과정이 필요하다. 따라서 8 bit mode는 4 bit mode약 2배 빠르지만4 bit mode에 회로 구성이 복잡하다.(연결해야 하는 핀이 4개 더 많다.)
+> 8 bit mode로 회로를 구성하려고 했으나 의도한 입력값과 wiringpi library의 함수가 제대로 적용되지 않고 이상한 값이 출력되는 에러가 발생하여
+4 bit mode로 구성해보았고, 의도대로 잘 출력되어 4 bit mode를 쓰기로 하였다.
+
+
+#4. 참고
+lcd display 연결 및 lcd wiringpi 함수 사용예
+> https://fishpoint.tistory.com/1956
+
+lcd display 연결 유튜브, 설명
+> https://www.youtube.com/watch?v=cVdSc8VYVBM
+> https://www.rototron.info/lcd-display-tutorial-for-raspberry-pi/
