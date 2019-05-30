@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <wiringPi.h>
+#include <signal.h>
 
 #define TRUE 1
 
 #define TRIG 0
 #define ECHO 2
+#define SENSOR 29
+#define LED 29
 
 void setup() 
 {
@@ -21,18 +24,14 @@ void setup()
 					
 int getCM() 
 {
-	printf("getCM\n");
 	//Send trig pulse
 	digitalWrite(TRIG, HIGH);
-        delayMicroseconds(20);
-					                                                digitalWrite(TRIG, LOW);
-	printf("before while\n");
+        delayMicroseconds(1000);
+					                                                   digitalWrite(TRIG, LOW);
         //Wait for echo start
-	while(digitalRead(ECHO) == LOW);					
-		      printf("after 1 while\n");                                                                  //Wait for echo end
+	while(digitalRead(ECHO) == LOW);		                                   //Wait for echo end
         long startTime = micros();
         while(digitalRead(ECHO) == HIGH);
-	printf("a 2 while\n");
         long travelTime = micros() - startTime;
 					
         //Get distance in cm
@@ -40,15 +39,38 @@ int getCM()
 	printf("D %d\n", distance);
 					
         return distance;
-}
-		
+}		
 int main()
 {
 	int d = 0;
 	setup();
-											while(1)									{											d = getCM();
+	pinMode(SENSOR, INPUT);
+	pinMode(LED, OUTPUT);
+	//pinMode(SENSOR, INPUT);
+
+	while(1)
+	{
+//		signal(SIGINT, sig_handler);
+
+		d = getCM();
 		printf("Distance: %dcm\n", d);
-		if(d <30)
-			break;
-	}			                                                                                                                                                return 0;
-                                                                                                                          }
+		if(d <50){
+			digitalWrite(LED, 100);	
+			pinMode(SENSOR, INPUT);
+			if(digitalRead(SENSOR) == 1)
+				digitalWrite(LED, 0);
+			//			printf("---------------%d\n", digitalRead(SENSOR));
+			//if(digitalRead(SENSOR)==1){
+			//	digitalWrite(LED, 0);
+			//}
+		}
+		else{
+		
+			digitalWrite(LED, 0);	
+//			printf("---------%d\n", digitalRead(SENSOR));
+		}
+
+	}	
+
+											return 0;
+                                                                                   }
