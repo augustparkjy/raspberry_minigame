@@ -32,6 +32,10 @@ int main()
 	lcdPosition(lcd, 0, 0);
 	lcdPuts(lcd, "HELLO, WORLD!");
 	printf("lcdputs\n");	
+	sleep(1);
+	lcdClear(lcd);
+	lcdPuts(lcd, "HIHI");
+	sleep(1);
 
 	return 0;
 }
