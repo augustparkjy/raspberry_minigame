@@ -58,7 +58,7 @@ int best = 0;
 int now = 0;
 int input=0;
 
-//main함수에서 
+//main
 int main()
 {
 	int d = 0;
@@ -95,38 +95,27 @@ int main()
 	//setup devices
 	setup();
 
-	//printf("input[0] : %d\n", input[0]);
 
 	while (1)
 	{
-		//유저의 접근 대기 상태일 때, 1초 간격으로 sonar 센서를 이용해 물체와 거리 감지
+		
 		if (gameStatus == WAITING_CLOSER)
 		{
 			d = S_getCM();
 			sleep(1);
-			if(d<=5)
+			if(d<=30)
 				gameStatus = WAITING_INPUT;
 		}
 		
-		//감지된 거리가 50cm 이내일 때, 게임 시작을 위한 입력 대기 상태로 전환
-		//if (d<=50) 
-		//	gameStatus = WAITING_INPUT;
-		
-		//게임 중 상태일 때, 게임 함수 호출
 		if (gameStatus == PLAYING)
 			game();
 
-		//printf("gs: %d\n", gameStatus);
-		//printf("input: %d \n", input);
 	}
 
-	//exit thread
-	//pthread_join(p_thread[0], (void**)&status);
-	//pthread_join(p_thread[1], (void**)&status);
-
+	//exit
 }
 
-//wiringPi 셋업
+//wiringPi 
 void setup()
 {
 	printf("setup\n");
@@ -137,7 +126,7 @@ void setup()
 	//TRIG pin must start LOW
 	digitalWrite(TRIG, LOW);
 
-	//터치 센서 pinMode
+	//pinMode
 	pinMode(GR, INPUT);
 	pinMode(WH, INPUT);
 	pinMode(YL, INPUT);
@@ -186,7 +175,7 @@ void *L_func(void* data)
 	
 	int s;
 	int ms;
-	//4bits 전송 lcd 방식, gpio 부족
+	//4bits
 	lcd = lcdInit(2, 16, 4, RS, E, D4, D5, D6, D7, 0, 0, 0, 0);
 
 	while (1)
@@ -194,7 +183,7 @@ void *L_func(void* data)
 		printf("-------------gameStatus : %d\n", gameStatus);
 		switch (gameStatus)
 		{
-			//come closer 문구와 오늘 날짜와 시간을 번갈아서 출력
+			//come closer 
 		case WAITING_CLOSER:
 			lcdPosition(lcd, 4, 0);
 			lcdPuts(lcd, "* COME *");
@@ -205,7 +194,7 @@ void *L_func(void* data)
 			L_datetime(lcd);
 			lcdClear(lcd);
 			break;
-			//유저가 가까이 있음이 확인되면, 게임 할 의사가 있는지 확인
+	
 		case WAITING_INPUT:
 			while (count<3) {
 				printf("cnt: %d\n", count);
@@ -229,7 +218,6 @@ void *L_func(void* data)
 					break;
 				}
 			}
-			//일정 시간동안 입력이 없으면 게임을 할 의사가 없는 것으로 판단하고 다시 유저 접근 대기 상태로 
 			if (count == 3)
 			{
 				count = 0;
@@ -237,50 +225,40 @@ void *L_func(void* data)
 				break;
 			}
 			break;
-			//게임 중
+		
 		case PLAYING:
-			//게임이 시작됨을 알림
+	
 			lcdPosition(lcd, 3, 0);
 			lcdPuts(lcd, "* G A M E *");
 			lcdPosition(lcd, 2, 1);
 			lcdPuts(lcd, "* S T A R T *");
 			sleep(1);
 			lcdClear(lcd);
-			//게임이 진행되는 60초를 카운트하고, 최고기록과 현재기록 그리고 남은 시간을 출력
+
 			s = 10;
 			ms = 00;
 			while (gameStatus == PLAYING)
 			{
 				lcdClear(lcd);
-				//printf("---------time %d:%d\n", s, ms);
+
 				lcdPosition(lcd, 1, 0);
 				lcdPrintf(lcd, "BEST  %d  TIMER ", best);
 				lcdPosition(lcd, 2, 1);
 				lcdPrintf(lcd, "NOW  %d  [%d]", now, s);
-				//lcdPrintf(lcd, " BEST  %-02d  TIMER", ms);
-				//lcdPosition(lcd, 2, 1);
-				//lcdPrintf(lcd, "NOW %-02d  %-02d:%-02d", now, s, ms);
-							
-				//시간이 다 되면 게임 결과 상태로 전환
+				
 				if (s == 0)
 				{
 					gameStatus = RESULT_TIMEOUT;
 					break;
 				}
-				//0.01초 단위로 카운트
+		
 				delay(1000);
 				s--;
 				lcdClear(lcd);
-				//if (ms != 0)
-			//		ms--;
-			//	else
-			//	{
-			//		ms = 99;
-			//		s--;
-			//	}
+			
 			}			
 			break;
-			//게임 결과
+		
 		case RESULT_MISS:
 			if(best >= now)
 			{
@@ -320,7 +298,7 @@ void *L_func(void* data)
 			}
 			break;
 		case RESULT_TIMEOUT:
-			//기록 갱신에 실패했을 때
+	
 			if (best >= now)
 			{
 				for (int i = 0; i < 2; i++)
@@ -336,7 +314,7 @@ void *L_func(void* data)
 				now = 0;
 				gameStatus = WAITING_CLOSER;
 			}
-			//기록 갱신에 성공했을 때
+		
 			else
 			{
 				for (int i = 0; i < 2; i++)
@@ -370,81 +348,26 @@ void *T_func(void* data)
 	printf("[%s is running]\n", t_name);
 	sleep(1);
 
-	//pinMode(GR, INPUT);
-	//pinMode(WH, INPUT);
-	//pinMode(YL, INPUT);
-	//pinMode(RD, INPUT);
+
 	
 	while (1)
 	{
 
-		/*
-		if(gameStatus == WAITING_INPUT)
-		{
-			if(digitalRead(GR) || digitalRead(WH) || digitalRead(YL) || digitalRead(RD)) 
-			{
-				gameStatus=PLAYING;
-				sleep(1);
-			}		
-			if (digitalRead(GR) == 1) input2 = 1;
-			else if (digitalRead(WH) == 1) input2 = 2;
-			else if (digitalRead(YL) == 1) input2 = 3;
-			else if (digitalRead(RD) == 1) input2 = 4;
-			
-		}
-
-
-		if(gameStatus == PLAYING)
-		{
-			
-			i=0;
-
-			while(1)
-			{
-				if(digitalRead(GR) ==1) input[i]=1;
-				else if(digitalRead(WH) == 1) input[i]=2;
-				else if(digitalRead(YL) == 1) input[i]=3;
-				else if(digitalRead(RD) == 1) input[i]=4;
-				else{
-					i++;
-				}
-				delay(DELAYTIME);
-				if(i==now+3)
-					break;
-			}
-		}
-		*/
-		//입력 대기 상태 또는 게임 중 상태일 때만 입력이 유효하도록 함.
+	
 		
-		if (gameStatus == WAITING_INPUT)// || gameStatus == PLAYING)
+		if (gameStatus == WAITING_INPUT)
 		{
 			
-			//초, 흰, 노, 빨 각각의 터치 센서를 입력하면 해당되는 입력이 인식됨.
+			
 			if (digitalRead(GR) == 1) input = 1;
 			else if (digitalRead(WH) == 1) input = 2;
 			else if (digitalRead(YL) == 1) input = 3;
 			else if (digitalRead(RD) == 1) input = 4;
-
-			//입력 대기 상태일 때, 입력이 감지되면 게임 중 상태로 전환
+		
 			if (input>0 && gameStatus == WAITING_INPUT){
 				gameStatus = PLAYING;
 
-			//게임 중 입력일 경우 터치 충돌을 방지하기 위해 일정 delay를 준다.
-		//	if (gameStatus == PLAYING)
-		//	{
-				/*
-				for(int i=0;i<now+3;i++)
-				{
-					if(input ==0)
-
-				}
-				printf("----------input: %d\n", input);
-				*/
-		//		printf("------------touch input : %d\n", input);
-		//		delay(100);
-		//	}
-
-			//다시 무입력 상태로 
+		
 			input = 0;}
 		}
 		
@@ -457,12 +380,7 @@ void *LED_func(void* data)
 	printf("[%s is running]\n", t_name);
 	sleep(1);
 
-	/*pinMode(LED_GR, OUTPUT);
-	pinMode(LED_WH, OUTPUT);
-	pinMode(LED_YL, OUTPUT);
-	pinMode(LED_RD, OUTPUT);*/
-
-	//터치 입력에 해당하는 led가 켜지거나 게임 진행을 위해 터치와 독립적으로 켜진다.
+	
 	while (1)
 	{
 		delay(100);
@@ -512,10 +430,10 @@ void L_datetime(int lcd) {
 
 		timer = time(NULL);
 
-		//set time to KST
+	
 		timer += 28800;
 
-		//time(&timer);
+
 		tm_info = localtime(&timer);
 
 		strftime(buffer_date, 26, "DATE: %Y:%m:%d", tm_info);
@@ -537,17 +455,14 @@ void game()
 	srand(time(NULL));
 
 	int rnum[MAX_STAGE];
-	//최초 외워야 할 번호는 3개
+
 	now = 0;
-	//int stage = 3;
-//	int j = 0;
 
 	sleep(1);
 
 	while (gameStatus == PLAYING)
 	{
-		//int k=0;
-		//외워야 할 번호를 랜덤 생성하고 번호에 해당하는 led를 output 값을 통해 점등
+	
 		delay(200);
 
 		for (int i = 0; i < now+1; i++)
@@ -557,42 +472,30 @@ void game()
 		for(int h=0; h<now+1;h++){
 			output = rnum[h];
 			delay(500);
-			printf("---------output:%d\n", output);
+
 		}
 		output=0;
 
-		//암기 도전
+	
 		for(int j = 0; j < now +1 ;j++)
 		{
 			input = getTouch();
 			
 			delay(500);
 			
-			printf("getTouch : %d\n\n", input);
+	
 			if(rnum[j] != (input))
-			/*	
-			while(!(k=input)){}
-			printf("k:%d\n", k);
 			
-			if(input[j]==0)
 			{
-				j--;
-				continue;
-			}
-			printf("j:%d\n", j);
-
-			if(rnum[j]!=k)
-			*/
-			{
-				printf("rnum[%d] : %d k : %d\n", j, rnum[j],input);
-				//printf("now: %d \n", now);
+		
+			
 				input =0;
 				gameStatus = RESULT_MISS;
 
 				return;
 			}else{
 			
-			printf("Input %d\n",input);
+		
 			
 			}
 			
@@ -602,37 +505,7 @@ void game()
 		}
 	
 
-/*
-		while (j < now+3)
-		{
-
-			//유저 입력이 있을 때 까지 대기
-			if (input == 0)
-				continue;
-			else
-			{
-				//입력한 값이 제시된 순서에 해당하지 않으면 게임은 결과 상태로
-				if(rnum[j]!=input)
-					correct = -1;
-				else
-					correct =1;
-				if (correct ==-1)
-				{
-					//현재까지 클리어한 stage = stage - 3
-					now = stage - 3;
-					gameStatus = RESULT;
-					//함수 종료
-					return;
-				}
-				//입력한 값이 일치하면 계속 진행
-				else
-				{
-					j++;
-				}
-			}
-		}		
-		j = 0;
-*/		now++;
+		now++;
 	}
 
 	return;
