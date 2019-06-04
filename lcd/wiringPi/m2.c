@@ -37,9 +37,8 @@
 #define WAITING_CLOSER 	1
 #define WAITING_INPUT 	2
 #define PLAYING			3
-#define RESULT			4
-#define RESULT_WIN		5
-#define RESULT_LOSE		6
+#define RESULT_TIMEOUT		4
+#define RESULT_MISS		5
 
 #define DELAYTIME		200
 #define MAX_STAGE		100
@@ -105,7 +104,7 @@ int main()
 		{
 			d = S_getCM();
 			sleep(1);
-			if(d<=50)
+			if(d<=5)
 				gameStatus = WAITING_INPUT;
 		}
 		
@@ -170,7 +169,7 @@ int S_getCM()
 
 	//Get distance in cm
 	int distance = travelTime / 58;
-	//printf("Distance:  %d\n", distance);
+	printf("Distance:  %d\n", distance);
 
 	return distance;
 }
@@ -241,14 +240,14 @@ void *L_func(void* data)
 			//게임 중
 		case PLAYING:
 			//게임이 시작됨을 알림
-			lcdPosition(lcd, 4, 0);
+			lcdPosition(lcd, 3, 0);
 			lcdPuts(lcd, "* G A M E *");
-			lcdPosition(lcd, 3, 1);
+			lcdPosition(lcd, 2, 1);
 			lcdPuts(lcd, "* S T A R T *");
 			sleep(1);
 			lcdClear(lcd);
 			//게임이 진행되는 60초를 카운트하고, 최고기록과 현재기록 그리고 남은 시간을 출력
-			s = 60;
+			s = 10;
 			ms = 00;
 			while (gameStatus == PLAYING)
 			{
@@ -265,7 +264,7 @@ void *L_func(void* data)
 				//시간이 다 되면 게임 결과 상태로 전환
 				if (s == 0)
 				{
-					gameStatus = RESULT;
+					gameStatus = RESULT_TIMEOUT;
 					break;
 				}
 				//0.01초 단위로 카운트
@@ -282,7 +281,45 @@ void *L_func(void* data)
 			}			
 			break;
 			//게임 결과
-		case RESULT:
+		case RESULT_MISS:
+			if(best >= now)
+			{
+			for(int i = 0 ; i < 2 ; i ++)
+			{
+				lcdClear(lcd);
+				lcdPosition(lcd, 6, 0);
+				lcdPuts(lcd, "GG");
+				lcdPosition(lcd, 0, 1);
+				lcdPuts(lcd, " * TRY AGAIN! * ");
+				sleep(1);
+				lcdClear(lcd);
+			}
+			now =0;
+			gameStatus = WAITING_CLOSER;
+			}
+			else{
+				for(int i=0;i<2;i++)
+				{
+					lcdClear(lcd);
+					lcdPosition(lcd, 6, 0);
+					lcdPuts(lcd, "GG");
+					lcdPosition(lcd, 0, 1);
+					lcdPuts(lcd, " * NEW RECORD* *");
+					delay(500);
+					lcdClear(lcd);
+					lcdPosition(lcd, 6, 0);
+					lcdPuts(lcd, "GG");
+					lcdPosition(lcd, 0, 1);
+					lcdPuts(lcd, "* *NEW RECORD * ");
+					delay(500);
+					lcdClear(lcd);
+				}
+				best = now;
+				now = 0;
+				gameStatus = WAITING_CLOSER;
+			}
+			break;
+		case RESULT_TIMEOUT:
 			//기록 갱신에 실패했을 때
 			if (best >= now)
 			{
@@ -290,9 +327,9 @@ void *L_func(void* data)
 				{
 					lcdClear(lcd);
 					lcdPosition(lcd, 1, 0);
-					lcdPuts(lcd, "T I M E O U T *");
-					lcdPosition(lcd, 3, 1);
-					lcdPuts(lcd, "* * TRY AGAIN! * *");
+					lcdPuts(lcd, " * TIME OUT * ");
+					lcdPosition(lcd, 0, 1);
+					lcdPuts(lcd, " * TRY AGAIN! * ");
 					sleep(1);
 					lcdClear(lcd);
 				}
@@ -306,15 +343,15 @@ void *L_func(void* data)
 				{	
 					lcdClear(lcd);
 					lcdPosition(lcd, 1, 0);
-					lcdPuts(lcd, "T I M E O U T *");
-					lcdPosition(lcd, 3, 1);
-					lcdPuts(lcd, "* * NEW RECORD! * *");
+					lcdPuts(lcd, " * TIME OUT * ");
+					lcdPosition(lcd, 0, 1);
+					lcdPuts(lcd, "* *NEW RECORD * ");
 					delay(500);
 					lcdClear(lcd);
 					lcdPosition(lcd, 1, 0);
-					lcdPuts(lcd, "T I M E O U T  ");
-					lcdPosition(lcd, 3, 1);
-					lcdPuts(lcd, " * *NEW RECORD!* * ");
+					lcdPuts(lcd, " * TIME OUT * ");
+					lcdPosition(lcd, 0, 1);
+					lcdPuts(lcd, " * NEW RECORD* *");
 					delay(500);
 					lcdClear(lcd);
 				}
@@ -434,6 +471,7 @@ void *LED_func(void* data)
 			digitalWrite(LED_GR, 100);
 			delay(100);
 			digitalWrite(LED_GR, 0);
+
                         delay(100);	
 		}
 		else if (input == 2 || output == 2)
@@ -460,6 +498,7 @@ void *LED_func(void* data)
 			delay(100);
 	
 		}
+		output=0;
 	}
 }
 
@@ -517,7 +556,7 @@ void game()
 		}
 		for(int h=0; h<now+1;h++){
 			output = rnum[h];
-			delay(100);
+			delay(500);
 			printf("---------output:%d\n", output);
 		}
 		output=0;
@@ -529,7 +568,7 @@ void game()
 			
 			delay(500);
 			
-			printf("getTouch : %d\n\n",input);
+			printf("getTouch : %d\n\n", input);
 			if(rnum[j] != (input))
 			/*	
 			while(!(k=input)){}
@@ -548,7 +587,7 @@ void game()
 				printf("rnum[%d] : %d k : %d\n", j, rnum[j],input);
 				//printf("now: %d \n", now);
 				input =0;
-				gameStatus = RESULT;
+				gameStatus = RESULT_MISS;
 
 				return;
 			}else{
@@ -559,6 +598,7 @@ void game()
 			
 			output = 0;
 			input = 0;
+			delay(100);
 		}
 	
 
@@ -607,6 +647,5 @@ int getTouch(){
 	else if(digitalRead(WH)==1){ return  2;}
 	else if(digitalRead(YL)==1){ return  3;}
 	else if(digitalRead(RD)==1){ return 4;}
-	else{}
 	}
 }
