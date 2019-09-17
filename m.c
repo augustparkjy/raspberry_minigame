@@ -37,9 +37,8 @@
 #define WAITING_CLOSER 	1
 #define WAITING_INPUT 	2
 #define PLAYING			3
-#define RESULT			4
-#define RESULT_WIN		5
-#define RESULT_LOSE		6
+#define RESULT_TIMEOUT		4
+#define RESULT_MISS		5
 
 #define DELAYTIME		200
 #define MAX_STAGE		100
@@ -51,14 +50,15 @@ int S_getCM();
 void *T_func(void* data);
 void *LED_func(void* data);
 void game();
-
+int getTouch();
 int gameStatus = WAITING_CLOSER;
 
-int input, output = 0;
+int output = 0;
 int best = 0;
 int now = 0;
+int input=0;
 
-//mainÇÔ¼ö¿¡¼­ 
+//main
 int main()
 {
 	int d = 0;
@@ -95,32 +95,27 @@ int main()
 	//setup devices
 	setup();
 
+
 	while (1)
 	{
-		//À¯ÀúÀÇ Á¢±Ù ´ë±â »óÅÂÀÏ ¶§, 1ÃÊ °£°ÝÀ¸·Î sonar ¼¾¼­¸¦ ÀÌ¿ëÇØ ¹°Ã¼¿Í °Å¸® °¨Áö
+		
 		if (gameStatus == WAITING_CLOSER)
 		{
 			d = S_getCM();
 			sleep(1);
+			if(d<=30)
+				gameStatus = WAITING_INPUT;
 		}
 		
-		//°¨ÁöµÈ °Å¸®°¡ 50cm ÀÌ³»ÀÏ ¶§, °ÔÀÓ ½ÃÀÛÀ» À§ÇÑ ÀÔ·Â ´ë±â »óÅÂ·Î ÀüÈ¯
-		if (d<=50) 
-			gameStatus = WAITING_INPUT;
-		
-		//°ÔÀÓ Áß »óÅÂÀÏ ¶§, °ÔÀÓ ÇÔ¼ö È£Ãâ
 		if (gameStatus == PLAYING)
 			game();
 
 	}
 
-	//exit thread
-	//pthread_join(p_thread[0], (void**)&status);
-	//pthread_join(p_thread[1], (void**)&status);
-
+	//exit
 }
 
-//wiringPi ¼Â¾÷
+//wiringPi 
 void setup()
 {
 	printf("setup\n");
@@ -131,13 +126,13 @@ void setup()
 	//TRIG pin must start LOW
 	digitalWrite(TRIG, LOW);
 
-	//ÅÍÄ¡ ¼¾¼­ pinMode
+	//pinMode
 	pinMode(GR, INPUT);
 	pinMode(WH, INPUT);
 	pinMode(YL, INPUT);
 	pinMode(RD, INPUT);
 
-	//LEDÀÇ pinMode
+	//LEDì˜ pinMode
 	pinMode(LED_GR, OUTPUT);
 	pinMode(LED_WH, OUTPUT);
 	pinMode(LED_YL, OUTPUT);
@@ -180,14 +175,15 @@ void *L_func(void* data)
 	
 	int s;
 	int ms;
-	//4bits Àü¼Û lcd ¹æ½Ä, gpio ºÎÁ·
+	//4bits
 	lcd = lcdInit(2, 16, 4, RS, E, D4, D5, D6, D7, 0, 0, 0, 0);
 
 	while (1)
 	{
+		printf("-------------gameStatus : %d\n", gameStatus);
 		switch (gameStatus)
 		{
-			//come closer ¹®±¸¿Í ¿À´Ã ³¯Â¥¿Í ½Ã°£À» ¹ø°¥¾Æ¼­ Ãâ·Â
+			//come closer 
 		case WAITING_CLOSER:
 			lcdPosition(lcd, 4, 0);
 			lcdPuts(lcd, "* COME *");
@@ -198,7 +194,7 @@ void *L_func(void* data)
 			L_datetime(lcd);
 			lcdClear(lcd);
 			break;
-			//À¯Àú°¡ °¡±îÀÌ ÀÖÀ½ÀÌ È®ÀÎµÇ¸é, °ÔÀÓ ÇÒ ÀÇ»ç°¡ ÀÖ´ÂÁö È®ÀÎ
+	
 		case WAITING_INPUT:
 			while (count<3) {
 				printf("cnt: %d\n", count);
@@ -222,82 +218,118 @@ void *L_func(void* data)
 					break;
 				}
 			}
-			//ÀÏÁ¤ ½Ã°£µ¿¾È ÀÔ·ÂÀÌ ¾øÀ¸¸é °ÔÀÓÀ» ÇÒ ÀÇ»ç°¡ ¾ø´Â °ÍÀ¸·Î ÆÇ´ÜÇÏ°í ´Ù½Ã À¯Àú Á¢±Ù ´ë±â »óÅÂ·Î 
 			if (count == 3)
 			{
 				count = 0;
 				gameStatus = WAITING_CLOSER;
 				break;
 			}
-			//°ÔÀÓ Áß
+			break;
+		
 		case PLAYING:
-			//°ÔÀÓÀÌ ½ÃÀÛµÊÀ» ¾Ë¸²
-			lcdPosition(lcd, 4, 0);
-			lcdPuts(lcd, "¡á¡à¡á G A M E ¡à¡á¡à¡á");
-			lcdPosition(lcd, 3, 1);
-			lcdPuts(lcd, "¡à¡á S T A R T ¡à¡á¡à");
-			delay(500);
+	
+			lcdPosition(lcd, 3, 0);
+			lcdPuts(lcd, "* G A M E *");
+			lcdPosition(lcd, 2, 1);
+			lcdPuts(lcd, "* S T A R T *");
+			sleep(1);
 			lcdClear(lcd);
-			//°ÔÀÓÀÌ ÁøÇàµÇ´Â 60ÃÊ¸¦ Ä«¿îÆ®ÇÏ°í, ÃÖ°í±â·Ï°ú ÇöÀç±â·Ï ±×¸®°í ³²Àº ½Ã°£À» Ãâ·Â
-			s = 60;
+
+			s = 10;
 			ms = 00;
 			while (gameStatus == PLAYING)
 			{
-				lcdPosition(lcd, 1, 0);
-				lcdPrintf(lcd, " BEST %-02d  TIMER", best);
-				lcdPosition(lcd, 2, 1);
-				lcdPrintf(lcd, "NOW %-02d  %-02d:%-02d", now, s, ms);
+				lcdClear(lcd);
 
-				//½Ã°£ÀÌ ´Ù µÇ¸é °ÔÀÓ °á°ú »óÅÂ·Î ÀüÈ¯
-				if (s == 0 && ms == 0)
+				lcdPosition(lcd, 1, 0);
+				lcdPrintf(lcd, "BEST  %d  TIMER ", best);
+				lcdPosition(lcd, 2, 1);
+				lcdPrintf(lcd, "NOW  %d  [%d]", now, s);
+				
+				if (s == 0)
 				{
-					gameStatus = RESULT;
+					gameStatus = RESULT_TIMEOUT;
 					break;
 				}
-				//0.01ÃÊ ´ÜÀ§·Î Ä«¿îÆ®
-				delay(10);
+		
+				delay(1000);
+				s--;
 				lcdClear(lcd);
-				if (ms != 0)
-					ms--;
-				else
-				{
-					ms = 99;
-					s--;
-				}
+			
 			}			
 			break;
-			//°ÔÀÓ °á°ú
-		case RESULT:
-			//±â·Ï °»½Å¿¡ ½ÇÆÐÇßÀ» ¶§
+		
+		case RESULT_MISS:
+			if(best >= now)
+			{
+			for(int i = 0 ; i < 2 ; i ++)
+			{
+				lcdClear(lcd);
+				lcdPosition(lcd, 6, 0);
+				lcdPuts(lcd, "GG");
+				lcdPosition(lcd, 0, 1);
+				lcdPuts(lcd, " * TRY AGAIN! * ");
+				sleep(1);
+				lcdClear(lcd);
+			}
+			now =0;
+			gameStatus = WAITING_CLOSER;
+			}
+			else{
+				for(int i=0;i<2;i++)
+				{
+					lcdClear(lcd);
+					lcdPosition(lcd, 6, 0);
+					lcdPuts(lcd, "GG");
+					lcdPosition(lcd, 0, 1);
+					lcdPuts(lcd, " * NEW RECORD* *");
+					delay(500);
+					lcdClear(lcd);
+					lcdPosition(lcd, 6, 0);
+					lcdPuts(lcd, "GG");
+					lcdPosition(lcd, 0, 1);
+					lcdPuts(lcd, "* *NEW RECORD * ");
+					delay(500);
+					lcdClear(lcd);
+				}
+				best = now;
+				now = 0;
+				gameStatus = WAITING_CLOSER;
+			}
+			break;
+		case RESULT_TIMEOUT:
+	
 			if (best >= now)
 			{
 				for (int i = 0; i < 2; i++)
 				{
+					lcdClear(lcd);
 					lcdPosition(lcd, 1, 0);
-					lcdPuts(lcd, "T I M E O U T ¡á");
-					lcdPosition(lcd, 3, 1);
-					lcdPuts(lcd, "¡á¡à TRY AGAIN! ¡á¡à");
+					lcdPuts(lcd, " * TIME OUT * ");
+					lcdPosition(lcd, 0, 1);
+					lcdPuts(lcd, " * TRY AGAIN! * ");
 					sleep(1);
 					lcdClear(lcd);
 				}
 				now = 0;
 				gameStatus = WAITING_CLOSER;
 			}
-			//±â·Ï °»½Å¿¡ ¼º°øÇßÀ» ¶§
+		
 			else
 			{
 				for (int i = 0; i < 2; i++)
-				{
+				{	
+					lcdClear(lcd);
 					lcdPosition(lcd, 1, 0);
-					lcdPuts(lcd, "T I M E O U T ¡á");
-					lcdPosition(lcd, 3, 1);
-					lcdPuts(lcd, "¡á NEW RECORD! ¡à");
+					lcdPuts(lcd, " * TIME OUT * ");
+					lcdPosition(lcd, 0, 1);
+					lcdPuts(lcd, "* *NEW RECORD * ");
 					delay(500);
 					lcdClear(lcd);
 					lcdPosition(lcd, 1, 0);
-					lcdPuts(lcd, "T I M E O U T ¡à");
-					lcdPosition(lcd, 3, 1);
-					lcdPuts(lcd, "¡à NEW RECORD! ¡á");
+					lcdPuts(lcd, " * TIME OUT * ");
+					lcdPosition(lcd, 0, 1);
+					lcdPuts(lcd, " * NEW RECORD* *");
 					delay(500);
 					lcdClear(lcd);
 				}
@@ -310,39 +342,35 @@ void *L_func(void* data)
 	}
 }
 
-int *T_func(void* data)
+void *T_func(void* data)
 {
 	char* t_name = (char*)data;
 	printf("[%s is running]\n", t_name);
 	sleep(1);
 
-	//pinMode(GR, INPUT);
-	//pinMode(WH, INPUT);
-	//pinMode(YL, INPUT);
-	//pinMode(RD, INPUT);
 
+	
 	while (1)
 	{
-		//ÀÔ·Â ´ë±â »óÅÂ ¶Ç´Â °ÔÀÓ Áß »óÅÂÀÏ ¶§¸¸ ÀÔ·ÂÀÌ À¯È¿ÇÏµµ·Ï ÇÔ.
-		if (gameStatus == WAITING_INPUT || gameStatus == PLAYING)
+
+	
+		
+		if (gameStatus == WAITING_INPUT)
 		{
-			//ÃÊ, Èò, ³ë, »¡ °¢°¢ÀÇ ÅÍÄ¡ ¼¾¼­¸¦ ÀÔ·ÂÇÏ¸é ÇØ´çµÇ´Â ÀÔ·ÂÀÌ ÀÎ½ÄµÊ.
+			
+			
 			if (digitalRead(GR) == 1) input = 1;
 			else if (digitalRead(WH) == 1) input = 2;
 			else if (digitalRead(YL) == 1) input = 3;
 			else if (digitalRead(RD) == 1) input = 4;
-
-			//ÀÔ·Â ´ë±â »óÅÂÀÏ ¶§, ÀÔ·ÂÀÌ °¨ÁöµÇ¸é °ÔÀÓ Áß »óÅÂ·Î ÀüÈ¯
-			if (input>0 && gameStatus == WAITING_INPUT)
+		
+			if (input>0 && gameStatus == WAITING_INPUT){
 				gameStatus = PLAYING;
 
-			//°ÔÀÓ Áß ÀÔ·ÂÀÏ °æ¿ì ÅÍÄ¡ Ãæµ¹À» ¹æÁöÇÏ±â À§ÇØ ÀÏÁ¤ delay¸¦ ÁØ´Ù.
-			if (gameStatus == PLAYING)
-				delay(DELAYTIME);
-
-			//´Ù½Ã ¹«ÀÔ·Â »óÅÂ·Î 
-			input = 0;
+		
+			input = 0;}
 		}
+		
 	}
 }
 
@@ -352,38 +380,43 @@ void *LED_func(void* data)
 	printf("[%s is running]\n", t_name);
 	sleep(1);
 
-	/*pinMode(LED_GR, OUTPUT);
-	pinMode(LED_WH, OUTPUT);
-	pinMode(LED_YL, OUTPUT);
-	pinMode(LED_RD, OUTPUT);*/
-
-	//ÅÍÄ¡ ÀÔ·Â¿¡ ÇØ´çÇÏ´Â led°¡ ÄÑÁö°Å³ª °ÔÀÓ ÁøÇàÀ» À§ÇØ ÅÍÄ¡¿Í µ¶¸³ÀûÀ¸·Î ÄÑÁø´Ù.
+	
 	while (1)
 	{
+		delay(100);
 		if (input == 1 || output == 1)
 		{
 			digitalWrite(LED_GR, 100);
-			delay(DELAYTIME);
+			delay(100);
 			digitalWrite(LED_GR, 0);
+
+                        delay(100);	
 		}
 		else if (input == 2 || output == 2)
 		{
 			digitalWrite(LED_WH, 100);
-			delay(DELAYTIME);
+			delay(100);
 			digitalWrite(LED_WH, 0);
+			delay(100);
+	
 		}
 		else if (input == 3 || output == 3)
 		{
 			digitalWrite(LED_YL, 100);
-			delay(DELAYTIME);
+			delay(100);
 			digitalWrite(LED_YL, 0);
+			delay(100);
+
 		}
 		else if (input == 4 || output == 4)
 		{
 			digitalWrite(LED_RD, 100);
-			delay(DELAYTIME);
+			delay(100);
 			digitalWrite(LED_RD, 0);
+			delay(100);
+	
 		}
+		output=0;
 	}
 }
 
@@ -397,10 +430,10 @@ void L_datetime(int lcd) {
 
 		timer = time(NULL);
 
-		//set time to KST
+	
 		timer += 28800;
 
-		//time(&timer);
+
 		tm_info = localtime(&timer);
 
 		strftime(buffer_date, 26, "DATE: %Y:%m:%d", tm_info);
@@ -422,48 +455,70 @@ void game()
 	srand(time(NULL));
 
 	int rnum[MAX_STAGE];
-	//ÃÖÃÊ ¿Ü¿ö¾ß ÇÒ ¹øÈ£´Â 3°³
-	int stage = 3;
-	int j = 0;
+
+	now = 0;
+
+	sleep(1);
 
 	while (gameStatus == PLAYING)
 	{
-		//¿Ü¿ö¾ß ÇÒ ¹øÈ£¸¦ ·£´ý »ý¼ºÇÏ°í ¹øÈ£¿¡ ÇØ´çÇÏ´Â led¸¦ output °ªÀ» ÅëÇØ Á¡µî
-		for (int i = 0; i < stage; i++)
+	
+		delay(200);
+
+		for (int i = 0; i < now+1; i++)
 		{
 			rnum[i] = (rand() % 4) + 1;
-			output = rnum[i];
-			delay(DELAYTIME);
 		}
+		for(int h=0; h<now+1;h++){
+			output = rnum[h];
+			delay(500);
 
-		//¾Ï±â µµÀü
-		while (j < stage)
-		{
-			//À¯Àú ÀÔ·ÂÀÌ ÀÖÀ» ¶§ ±îÁö ´ë±â
-			if (input == 0)
-				continue;
-			else
-			{
-				//ÀÔ·ÂÇÑ °ªÀÌ Á¦½ÃµÈ ¼ø¼­¿¡ ÇØ´çÇÏÁö ¾ÊÀ¸¸é °ÔÀÓÀº °á°ú »óÅÂ·Î
-				if (rnum[j] != input)
-				{
-					//ÇöÀç±îÁö Å¬¸®¾îÇÑ stage = stage - 3
-					now = stage - 3;
-					gameStatus = RESULT;
-					//ÇÔ¼ö Á¾·á
-					return;
-				}
-				//ÀÔ·ÂÇÑ °ªÀÌ ÀÏÄ¡ÇÏ¸é °è¼Ó ÁøÇà
-				else
-				{
-					j++;
-				}
-			}
 		}
+		output=0;
+
+	
+		for(int j = 0; j < now +1 ;j++)
+		{
+			input = getTouch();
+			
+			delay(500);
+			
+	
+			if(rnum[j] != (input))
+			
+			{
 		
-		j = 0;
-		stage++;
+			
+				input =0;
+				gameStatus = RESULT_MISS;
+
+				return;
+			}else{
+			
+		
+			
+			}
+			
+			output = 0;
+			input = 0;
+			delay(100);
+		}
+	
+
+		now++;
 	}
 
 	return;
+}
+int getTouch(){
+
+	while(1)
+	{
+	if(digitalRead(GR)==1){      
+		return 1;
+	}
+	else if(digitalRead(WH)==1){ return  2;}
+	else if(digitalRead(YL)==1){ return  3;}
+	else if(digitalRead(RD)==1){ return 4;}
+	}
 }
