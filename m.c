@@ -62,7 +62,7 @@ int input=0;
 int main()
 {
 	int d = 0;
-	pthread_t p_thread[2];
+	pthread_t p_thread[3];
 	int thr_id;
 	int status;
 
