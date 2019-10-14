@@ -8,19 +8,19 @@
 순서가 틀리거나, 시간이 초과되면 FAIL!
 ```
 * 게임 대기 상태  
-[![영상 링크](./imgs/waiting.PNG)](https://drive.google.com/open?id=1GUvwIEpqCSNCo1UfnrqaQHAR43p_v2mc "영상 링크로 연결")
+[![영상 링크](./imgs/waiting.PNG)](https://drive.google.com/a/ajou.ac.kr/file/d/1GUvwIEpqCSNCo1UfnrqaQHAR43p_v2mc/view?usp=sharing "영상 링크로 연결")
 
 * 게임 실행중 상태
 1. 시간 초과
 - 시간 초과  
-[![영상 링크](./imgs/timeout.PNG)](https://drive.google.com/open?id=1XLTE5VaUENae3P-6Jh6jKAb7idDzyV2Y "영상 링크로 연결")
+[![영상 링크](./imgs/timeout.PNG)](https://drive.google.com/a/ajou.ac.kr/file/d/1zlBu5jXgQf5xO8pIZIxFanU1XQL0a8DB/view?usp=sharing "영상 링크로 연결")
 
 - 시간 초과 후 신기록 수립  
-[![영상 링크](./imgs/timeout_newrecord.PNG)](https://drive.google.com/open?id=1zlBu5jXgQf5xO8pIZIxFanU1XQL0a8DB "영상 링크로 연결")
+[![영상 링크](./imgs/timeout_newrecord.PNG)](https://drive.google.com/a/ajou.ac.kr/file/d/1XLTE5VaUENae3P-6Jh6jKAb7idDzyV2Y/view?usp=sharing "영상 링크로 연결")
 
 2. 잘못된 순서 입력
 - 잘못된 순서 입력  
-[![영상 링크](./imgs/miss.PNG)](https://drive.google.com/open?id=1rNPP92nF0ctWrv42qJyV87v2M5I0_Osa "영상 링크로 연결")
+[![영상 링크](./imgs/miss.PNG)](https://drive.google.com/a/ajou.ac.kr/file/d/1rNPP92nF0ctWrv42qJyV87v2M5I0_Osa/view?usp=sharing "영상 링크로 연결")
 
 - 잘못된 순서 입력 후 신기록 수립  
-[![영상 링크](./imgs/miss_newrecord.PNG)](https://drive.google.com/open?id=1f5d77_8Q8kDF90G4LO2zyI-UksaPEZ1m "영상 링크로 연결")
+[![영상 링크](./imgs/miss_newrecord.PNG)](https://drive.google.com/a/ajou.ac.kr/file/d/1f5d77_8Q8kDF90G4LO2zyI-UksaPEZ1m/view?usp=sharing "영상 링크로 연결")
